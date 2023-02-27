@@ -2,142 +2,22 @@ import dash
 from dash.dependencies import Input, Output, State
 from dash import dcc, html, ALL
 import dash_bootstrap_components as dbc
+from dash.exceptions import PreventUpdate
 
-from globals import app
-
-
-# layout = dbc.Container([
-#     dbc.Row([
-#         dbc.Col(html.H2('Create Recipe'), width=12)
-#     ]),
-#     dbc.Row([
-#         dbc.Col([
-#             html.Label('Name'),
-#             dbc.Input(type='text', id='name-input', placeholder='Enter recipe name', className='form-control')
-#         ], width=6),
-#         dbc.Col([
-#             html.Label('Section category'),
-#             dbc.Select(
-#                 options=[
-#                     {'label': 'Breakfast', 'value': 'Breakfast'},
-#                     {'label': 'Lunch', 'value': 'Lunch'},
-#                     {'label': 'Dinner', 'value': 'Dinner'},
-#                     {'label': 'Dessert', 'value': 'Dessert'},
-#                     {'label': 'Drinks', 'value': 'Drinks'}
-#                 ],
-#                 id='section-dropdown',
-#                 value='Breakfast',
-#                 className='form-select'
-#             )
-#         ], width=6)
-#     ]),
-#     dbc.Row([
-#         dbc.Col([
-#             html.Label('Image upload'),
-#             html.Div([
-#                 dcc.Upload(
-#                     id='upload-data',
-#                     children=html.Div([
-#                         'Drag and Drop or ',
-#                         html.A('Select Files')
-#                     ]),
-#                     style={
-#                         'width': '100%',
-#                         'height': '60px',
-#                         'lineHeight': '60px',
-#                         'borderWidth': '1px',
-#                         'borderStyle': 'dashed',
-#                         'borderRadius': '5px',
-#                         'textAlign': 'center',
-#                         'margin': '10px'
-#                     },
-#                     # Allow multiple files to be uploaded
-#                     multiple=True
-#                 ),
-#                 html.Div(id='output-data-upload'),
-#             ]),
-#             html.Div(id='output-image-upload')
-#         ])
-#     ]),
-#     dbc.Row([
-#         dbc.Col([
-#             html.Label('Time to make'),
-#             dbc.Input(type='text', id='time-input', placeholder='Enter time to make', className='form-control')
-#         ], width=6),
-#         dbc.Col([
-#             html.Label('Number of servings'),
-#             dbc.Input(type='text', id='servings-input', placeholder='Enter number of servings', className='form-control')
-#         ], width=6)
-#     ]),
-#     dbc.Row([
-#         dbc.Col([
-#             html.H3('Ingredients'),
-#             dbc.Button('Add ingredient', id='add-ingredient-button', color='primary', className='mb-3'),
-#             html.Div(id='ingredients-container', children=[
-#                 html.Div([
-#                     dbc.Input(type='text', id={'type': 'ingredient-name-input', 'index': 0}, placeholder='Enter ingredient name', className='form-control'),
-#                     dbc.Input(type='text', id={'type': 'ingredient-quantity-input', 'index': 0}, placeholder='Enter quantity', className='form-control'),
-#                     dbc.Input(type='text', id={'type': 'ingredient-unit-input', 'index': 0}, placeholder='Enter unit', className='form-control'),
-#                     dbc.Button('Remove', id={'type': 'remove-ingredient-button', 'index': 0}, color='danger', className='mb-3'),
-#                     dbc.Button('Move up', id={'type': 'move-ingredient-up-button', 'index': 0}, color='primary', className='mb-3'),
-#                     dbc.Button('Move down', id={'type': 'move-ingredient-down-button', 'index': 0}, color='primary', className='mb-3')
-#                 ], id='ingredient-0', className='mb-3')
-#             ])
-#         ], width=6),
-#         dbc.Col([
-#             html.H3('Instructions'),
-#             dbc.Button('Add step', id='add-step-button', color='primary', className='mb-3'),
-#             html.Div(id='instructions-container', children=[
-#                 html.Div([
-#                     dbc.Input(type='text', id={'type': 'step-input', 'index': 0}, placeholder='Enter step', className='form-control'),
-#                     html.Div([
-#                         dcc.Upload(
-#                             id='upload-data',
-#                             children=html.Div([
-#                                 'Drag and Drop or ',
-#                                 html.A('Select Files')
-#                             ]),
-#                             style={
-#                                 'width': '100%',
-#                                 'height': '60px',
-#                                 'lineHeight': '60px',
-#                                 'borderWidth': '1px',
-#                                 'borderStyle': 'dashed',
-#                                 'borderRadius': '5px',
-#                                 'textAlign': 'center',
-#                                 'margin': '10px'
-#                             },
-#                             # Allow multiple files to be uploaded
-#                             multiple=True
-#                         ),
-#                         html.Div(id='output-data-upload'),
-#                     ]),
-#                     dbc.Button('Remove', id={'type': 'remove-step-button', 'index': 0}, color='danger', className='mb-3'),
-#                     dbc.Button('Move up', id={'type': 'move-step-up-button', 'index': 0}, color='primary', className='mb-3'),
-#                     dbc.Button('Move down', id={'type': 'move-step-down-button', 'index': 0}, color='primary', className='mb-3')
-#                 ], id='step-0', className='mb-3')
-#             ])
-#         ], width=6)
-#     ]),
-#     dbc.Row([
-#         dbc.Col([
-#             dbc.Button('Submit', id='submit-button', color='success', className='mt-5')
-#         ], width=12, align='center')
-#     ])
-# ])
-
+from globals import app, DATABASE_FILE, IMAGE_FOLDER
+import json
+import os
+import base64
 
 def main_image_upload(image=None):
     return html.Div([
         dcc.Upload(
-            id='upload-data',
+            id='main-image-upload',
             children=html.Div([
                 'Drag and Drop or ',
                 html.A('Select Image')
             ]),
             className='image-upload',
-            # style height = 180px
-            # center text vertically
             style={
                 'height': '400px',
                 'lineHeight': '400px',
@@ -197,7 +77,14 @@ def ingredient_input(food=None, quantity=None, units=None, index=0):
         )
     )
 
-    return html.Div([row1, row2], className='mb-2 bg-light p-2')
+    return html.Div(
+        [
+            row1, 
+            row2
+        ], 
+        id={'type': 'ingredient', 'index': index},
+        className='mb-2 bg-light p-2'
+    )
 
 
 
@@ -206,14 +93,6 @@ def instruction_input(instruction=None, image=None, index=0):
     # first row: text input for step
     row1 = dbc.Row([
         dbc.Col(
-            # dbc.Input(
-            #     type='text',
-            #     id={'type': 'step-input', 'index': index},
-            #     placeholder='Enter step',
-            #     className='form-control',
-            #     value=instruction,
-            # )
-            # make that input a multi-line text input
             dcc.Textarea(
                 id={'type': 'step-input', 'index': index},
                 placeholder='Enter step',
@@ -223,7 +102,7 @@ def instruction_input(instruction=None, image=None, index=0):
         ),
         dbc.Col([
             dcc.Upload(
-                id='upload-data',
+                id={'type': 'step-image-upload', 'index': index},
                 children=html.Div([
                     html.A('Add Image (optional)')
                 ]),
@@ -233,25 +112,6 @@ def instruction_input(instruction=None, image=None, index=0):
             html.Div(id='output-data-upload'),
         ], width=3)
     ])
-
-    # second row: button to remove step, button to move step up, button to move step down
-    # row2 = dbc.Row(
-    #     [
-    #         dbc.Col(
-    #             dbc.Button('Remove', id={'type': 'remove-step-button', 'index': index}, color='danger'),
-    #             className='mb-3',
-    #         ),
-    #         dbc.Col(
-    #             dbc.Button('Move up', id={'type': 'move-step-up-button', 'index': index}, color='primary'),
-    #             className='mb-3',
-    #         ),
-    #         dbc.Col(
-    #             dbc.Button('Move down', id={'type': 'move-step-down-button', 'index': index}, color='primary'),
-    #             className='mb-3',
-    #         ),
-    #     ],
-    #     className='justify-content-between',
-    # )
 
     # make buttons a button group
     row2 = dbc.Row(
@@ -267,9 +127,46 @@ def instruction_input(instruction=None, image=None, index=0):
         )
     )
 
-    # return html.Div([row1, row2], className='mb-2 bg-light')
-    # add a className to add padding
-    return html.Div([row1, row2], className='mb-2 bg-light p-2')
+    return html.Div(
+        [
+            row1, 
+            row2
+        ], 
+        id={'type': 'step', 'index': index},
+        className='mb-2 bg-light p-2'
+    )
+
+
+def update_index(component, new_index):
+    print(component)
+    # Get the properties of the original component
+    props = component['props']
+
+    # Create a new ID for the component based on the new index
+    new_id = {key: new_index if key == 'index' else props['id'][key] for key in props['id']}
+
+    # Create a new set of children with updated indices
+    new_children = []
+    for child in props['children']:
+        if 'index' in child.props['id']:
+            new_child_index = int(child.props['id']['index']) + new_index - int(props['id']['index'])
+            new_child = update_index(child, new_child_index)
+        else:
+            new_child = child
+        new_children.append(new_child)
+
+    # Create the new component with updated properties and children
+    new_component = component.type(
+        id=new_id,
+        className=props['className'],
+        style=props['style'],
+        children=new_children,
+        **props['kwargs']
+    )
+
+    return new_component
+
+
 
 
 
@@ -373,143 +270,161 @@ def create_food_form(main_image=None, category=None, food_name=None, servings=No
 
 
 
-layout = create_food_form()
+layout = html.Div(create_food_form(), id='food-form')
+
+
+@app.callback(
+    Output('ingredients-container', 'children'),
+    [
+        Input('add-ingredient-button', 'n_clicks'),
+        Input({'type': 'remove-ingredient-button', 'index': ALL}, 'n_clicks'),
+    ],
+    State('ingredients-container', 'children'),
+)
+def modify_ingredient_inputs(add_button_clicks, remove_button_clicks, children):
+    # Get the index of the button that was clicked
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        # If no buttons have been clicked, return the current list of ingredient inputs
+        return children
+    else:
+        triggered_id = ctx.triggered[0]['prop_id']
+        print(triggered_id)
+        if 'add-ingredient-button' in triggered_id:
+            # If the "Add Ingredient" button was clicked, add a new input
+            new_index = len(children)
+            new_input = ingredient_input(index=new_index)
+            children.append(new_input)
+        else:
+            # If a "Remove" button was clicked, remove the corresponding input
+            args = json.loads(triggered_id.split('.')[0])
+            index = args['index']
+            children = [
+                child
+                for child in children
+                if child['props']['id']['index'] != index
+            ]
+
+    return children
 
 
 
+@app.callback(
+    Output('instructions-container', 'children'),
+    [
+        Input('add-step-button', 'n_clicks'),
+        Input({'type': 'remove-step-button', 'index': ALL}, 'n_clicks'),
+        Input({'type': 'move-step-up-button', 'index': ALL}, 'n_clicks'),
+        Input({'type': 'move-step-down-button', 'index': ALL}, 'n_clicks'),
+    ],
+    State('instructions-container', 'children'),
+)
+def modify_instruction_inputs(add_button_clicks, remove_button_clicks, move_up_clicks, move_down_clicks, children):
+    # Create a dictionary to keep track of child positions
+    child_positions = {}
+    for i, child in enumerate(children):
+        child_positions[child['props']['id']['index']] = i
+
+    # Get the index of the button that was clicked
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        # If no buttons have been clicked, return the current list of instruction inputs
+        return children
+    else:
+        triggered_id = ctx.triggered[0]['prop_id']
+        if 'add-step-button' in triggered_id:
+            # If the "Add Step" button was clicked, add a new input
+            new_index = len(children)
+            new_input = instruction_input(index=new_index)
+            children.append(new_input)
+            child_positions[new_index] = len(children) - 1
+        else:
+            # If a "Remove" button was clicked, remove the corresponding input
+            args = json.loads(triggered_id.split('.')[0])
+            index = args['index']
+            if 'remove-step-button' in triggered_id:
+                if index in child_positions:
+                    children.pop(child_positions[index])
+                    del child_positions[index]
+            else:
+                # If a "Move Up" or "Move Down" button was clicked, move the corresponding input
+                move_direction = -1 if 'move-step-up-button' in triggered_id else 1
+                if index in child_positions and 0 <= child_positions[index] + move_direction < len(children):
+                    old_position = child_positions[index]
+                    new_position = old_position + move_direction
+                    children[old_position], children[new_position] = children[new_position], children[old_position]
+                    child_positions[index] = new_position
+                    child_positions[children[new_position]['props']['id']['index']] = old_position
+
+    return children
 
 
-# # Define the callbacks for the form inputs
-# @app.callback(
-#     Output('ingredients-container', 'children'),
-#     [Input('add-ingredient-button', 'n_clicks')],
-#     [State('ingredients-container', 'children')]
-# )
-# def add_ingredient(n_clicks, children):
-#     new_index = len(children)
-#     new_ingredient = html.Div([
-#         dcc.Input(type='text', id={'type': 'ingredient-name-input', 'index': new_index}, placeholder='Enter ingredient name'),
-#         dcc.Input(type='text', id={'type': 'ingredient-quantity-input', 'index': new_index}, placeholder='Enter quantity'),
-#         dcc.Input(type='text', id={'type': 'ingredient-unit-input', 'index': new_index}, placeholder='Enter unit'),
-#         html.Button('Remove ingredient', id={'type': 'remove-ingredient-button', 'index': new_index}),
-#         html.Button('Move up', id={'type': 'move-ingredient-up-button', 'index': new_index}),
-#         html.Button('Move down', id={'type': 'move-ingredient-down-button', 'index': new_index})
-#     ], id=f'ingredient-{new_index}', className='ingredient')
-#     children.append(new_ingredient)
-#     return children
+@app.callback(
+    Output('food-form', 'children'),
+    Input('submit-button', 'n_clicks'),
+    State('main-image-upload', 'contents'), # what type is this? answer: string, base64 encoded
+    State('category-select', 'value'),
+    State('food-name-input', 'value'),
+    State('servings-input', 'value'),
+    State('time-input', 'value'),
+    State({'type': 'ingredient-name-input', 'index': ALL}, 'value'),
+    State({'type': 'ingredient-quantity-input', 'index': ALL}, 'value'),
+    State({'type': 'ingredient-unit-input', 'index': ALL}, 'value'),
+    State({'type': 'step-input', 'index': ALL}, 'value'),
+    State({'type': 'step-image-upload', 'index': ALL}, 'contents'),
+    prevent_initial_call=True,
+)
+def save_recipe(n_clicks, main_image, category, food_name, servings, time, ingredient_names, ingredient_quantities, ingredient_units, steps, step_images):
+    if n_clicks is None:
+        raise PreventUpdate
+    
+    # Save the main image to IMAGE_FOLDER/food_name/main.jpg
+    if main_image is not None:
+        main_image_filename = os.path.join(IMAGE_FOLDER, food_name, 'main.jpg')
+        os.makedirs(os.path.dirname(main_image_filename), exist_ok=True)
+        with open(main_image_filename, 'wb') as f:
+            f.write(base64.b64decode(main_image.split(',')[1]))
+    else:
+        main_image_filename = None
 
-# @app.callback(
-#     Output('instructions-container', 'children'),
-#     [Input('add-step-button', 'n_clicks')],
-#     [State('instructions-container', 'children')]
-# )
-# def add_step(n_clicks, children):
-#     new_index = len(children)
-#     new_step = html.Div([
-#         dcc.Input(type='text', id={'type': 'step-input', 'index': new_index}, placeholder='Enter step'),
-#         dcc.Upload(
-#             id={'type': 'step-image-upload', 'index': new_index},
-#             children=html.Div([
-#                 'Drag and drop or click to select a file'
-#             ]),
-#             style={
-#                 'width': '100%',
-#                 'height': '60px',
-#                 'lineHeight': '60px',
-#                 'borderWidth': '1px',
-#                 'borderStyle': 'dashed',
-#                 'borderRadius': '5px',
-#                 'textAlign': 'center'
-#             },
-#             multiple=False
-#         ),
-#         html.Button('Remove step', id={'type': 'remove-step-button', 'index': new_index}),
-#         html.Button('Move up', id={'type': 'move-step-up-button', 'index': new_index}),
-#         html.Button('Move down', id={'type': 'move-step-down-button', 'index': new_index})
-#     ], id=f'step-{new_index}', className='step')
-#     children.append(new_step)
-#     return children
 
-# @app.callback(
-#     Output('ingredients-container', 'children'),
-#     [
-#         Input({'type': 'remove-ingredient-button', 'index': ALL}, 'n_clicks'),
-#         Input({'type': 'move-ingredient-up-button', 'index': ALL}, 'n_clicks'),
-#         Input({'type': 'move-ingredient-down-button', 'index': ALL}, 'n_clicks')
-#     ],
-#     [State('ingredients-container', 'children')]
-# )
-# def update_ingredients(n_clicks_remove, n_clicks_up, n_clicks_down, children):
-#     ctx = dash.callback_context
-#     if not ctx.triggered:
-#         return children
-#     else:
-#         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#         button_type = button_id.split('-')[0]
-#         index = int(button_id.split('-')[1])
-#         if button_type == 'remove':
-#             children.pop(index)
-#         elif button_type == 'move':
-#             if 'up' in button_id:
-#                 if index > 0:
-#                     children[index], children[index-1] = children[index-1], children[index]
-#             elif 'down' in button_id:
-#                 if index < len(children)-1:
-#                     children[index], children[index+1] = children[index+1], children[index]
-#     return children
+    # Create the recipe dictionary
+    ingredients = [{'food': food, 'quantity': quantity, 'units': units} for food, quantity, units in zip(ingredient_names, ingredient_quantities, ingredient_units)]
 
-# @app.callback(
-#     Output('instructions-container', 'children'),
-#     [
-#         Input({'type': 'remove-step-button', 'index': ALL}, 'n_clicks'),
-#         Input({'type': 'move-step-up-button', 'index': ALL}, 'n_clicks'),
-#         Input({'type': 'move-step-down-button', 'index': ALL}, 'n_clicks')
-#     ],
-#     [State('instructions-container', 'children')]
-# )
-# def update_steps(n_clicks_remove, n_clicks_up, n_clicks_down, children):
-#     ctx = dash.callback_context
-#     if not ctx.triggered:
-#         return children
-#     else:
-#         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#         button_type = button_id.split('-')[0]
-#         index = int(button_id.split('-')[1])
-#         if button_type == 'remove':
-#             children.pop(index)
-#         elif button_type == 'move':
-#             if 'up' in button_id:
-#                 if index > 0:
-#                     children[index], children[index-1] = children[index-1], children[index]
-#             elif 'down' in button_id:
-#                 if index < len(children)-1:
-#                     children[index], children[index+1] = children[index+1], children[index]
-#     return children
+    # instructions = [{'instruction': step, 'image': image} for step, image in zip(steps, step_images)]
+    # save instructions images to IMAGE_FOLDER/food_name/instructions/step_index.jpg and build instructions list
+    instructions = []
+    for i, (step, image) in enumerate(zip(steps, step_images)):
+        if image is not None:
+            image_filename = os.path.join(IMAGE_FOLDER, food_name, 'instructions', f'{i}.jpg')
+            os.makedirs(os.path.dirname(image_filename), exist_ok=True)
+            with open(image_filename, 'wb') as f:
+                f.write(base64.b64decode(image.split(',')[1]))
+            instructions.append({'instruction': step, 'image': image_filename})
+        else:
+            instructions.append({'instruction': step, 'image': None})
+    
+    recipe = {
+        'image': main_image_filename,
+        'time': time,
+        'servings': servings,
+        'ingredients': ingredients,
+        'instructions': instructions,
+    }
 
-# @app.callback(
-#     Output('name-input', 'value'),
-#     [Input('submit-button', 'n_clicks')],
-#     [
-#         State('name-input', 'value'),
-#         State('section-dropdown', 'value'),
-#         State('image-upload', 'filename'),
-#         State('image-upload', 'contents'),
-#         State('time-input', 'value'),
-#         State('servings-input', 'value'),
-#         State({'type': 'ingredient-name-input', 'index': ALL}, 'value'),
-#         State({'type': 'ingredient-quantity-input', 'index': ALL}, 'value'),
-#         State({'type': 'ingredient-unit-input', 'index': ALL}, 'value'),
-#         State({'type': 'step-input', 'index': ALL}, 'value'),
-#         State({'type': 'step-image-upload', 'index': ALL}, 'filename'),
-#         State({'type': 'step-image-upload', 'index': ALL}, 'contents'),
-#     ]
-# )
-# def save_recipe(n_clicks, name, section, image_filename, image_contents, time, servings, ingredient_names, ingredient_quantities, ingredient_units, step_text, step_image_filenames, step_image_contents):
-#     if n_clicks is not None:
-#         # Save the recipe to the database
-#         # ...
-        
-#         # Clear the form inputs
-#         return ''
-#     else:
-#         return name
+    # Load the current database or create an empty one if it doesn't exist
+    with open(DATABASE_FILE, 'r') as f:
+        database = json.load(f)
+
+    # Add the recipe to the database
+    if category not in database:
+        database[category] = {}
+    database[category][food_name] = recipe
+
+    # Save the updated database
+    with open(DATABASE_FILE, 'w') as f:
+        json.dump(database, f, indent=4)
+
+    return create_food_form()
+
+

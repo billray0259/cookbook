@@ -1,0 +1,31 @@
+{
+    "lunch": {
+        "Spahgetti and Meatballs": {
+            "image": null,
+            "time": "14 mintues",
+            "servings": "2",
+            "ingredients": [
+                {
+                    "food": "Spahgetti",
+                    "quantity": "2",
+                    "units": "Cups"
+                },
+                {
+                    "food": "Meatball",
+                    "quantity": "12",
+                    "units": null
+                }
+            ],
+            "instructions": [
+                {
+                    "instruction": "make the food",
+                    "image": null
+                },
+                {
+                    "instruction": "Eat the food",
+                    "image": null
+                }
+            ]
+        }
+    }
+}
